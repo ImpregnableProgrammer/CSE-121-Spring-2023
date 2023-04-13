@@ -7,4 +7,4 @@ blink an LED on the board once per second.
 
 ## Things not working
 On the due date, the USB communication with my ESP32 stopped working since I was getting the following error whenever I 
-tried flashing my board: `[Errno 25] Inappropriate ioctl for device` but flashing someone else's board worked fine. As a result, I couldn't complete the lab on the due date. This was the onlly major issue I ran into. 
+tried flashing my board: `[Errno 25] Inappropriate ioctl for device` but flashing someone else's board worked fine. As a result, I couldn't test all the code on the due date although I had it written. I therefore wasn't comfortable turning it in then. This was the only major issue I ran into. 
