@@ -1,4 +1,4 @@
-# Install script for directory: /home/ubuntu/esp/esp-idf/components/esp_local_ctrl
+# Install script for directory: /home/ubuntu/CSE-121-Spring-2023/esp-idf/components/esp_local_ctrl
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

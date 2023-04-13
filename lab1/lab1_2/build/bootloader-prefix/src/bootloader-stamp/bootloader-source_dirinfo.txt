@@ -4,6 +4,6 @@
 
 method=source_dir
 command=
-source_dir=/home/ubuntu/esp/esp-idf/components/bootloader/subproject
+source_dir=/home/ubuntu/CSE-121-Spring-2023/esp-idf/components/bootloader/subproject
 work_dir=
 

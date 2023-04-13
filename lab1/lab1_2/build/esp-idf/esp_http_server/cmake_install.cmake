@@ -1,4 +1,4 @@
-# Install script for directory: /home/ubuntu/esp/esp-idf/components/esp_http_server
+# Install script for directory: /home/ubuntu/CSE-121-Spring-2023/esp-idf/components/esp_http_server
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

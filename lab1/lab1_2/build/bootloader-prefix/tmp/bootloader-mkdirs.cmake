@@ -4,19 +4,19 @@
 cmake_minimum_required(VERSION 3.5)
 
 file(MAKE_DIRECTORY
-  "/home/ubuntu/esp/esp-idf/components/bootloader/subproject"
-  "/home/ubuntu/esp/lab1/hello_world/build/bootloader"
-  "/home/ubuntu/esp/lab1/hello_world/build/bootloader-prefix"
-  "/home/ubuntu/esp/lab1/hello_world/build/bootloader-prefix/tmp"
-  "/home/ubuntu/esp/lab1/hello_world/build/bootloader-prefix/src/bootloader-stamp"
-  "/home/ubuntu/esp/lab1/hello_world/build/bootloader-prefix/src"
-  "/home/ubuntu/esp/lab1/hello_world/build/bootloader-prefix/src/bootloader-stamp"
+  "/home/ubuntu/CSE-121-Spring-2023/esp-idf/components/bootloader/subproject"
+  "/home/ubuntu/CSE-121-Spring-2023/lab1/lab1_2/build/bootloader"
+  "/home/ubuntu/CSE-121-Spring-2023/lab1/lab1_2/build/bootloader-prefix"
+  "/home/ubuntu/CSE-121-Spring-2023/lab1/lab1_2/build/bootloader-prefix/tmp"
+  "/home/ubuntu/CSE-121-Spring-2023/lab1/lab1_2/build/bootloader-prefix/src/bootloader-stamp"
+  "/home/ubuntu/CSE-121-Spring-2023/lab1/lab1_2/build/bootloader-prefix/src"
+  "/home/ubuntu/CSE-121-Spring-2023/lab1/lab1_2/build/bootloader-prefix/src/bootloader-stamp"
 )
 
 set(configSubDirs )
 foreach(subDir IN LISTS configSubDirs)
-    file(MAKE_DIRECTORY "/home/ubuntu/esp/lab1/hello_world/build/bootloader-prefix/src/bootloader-stamp/${subDir}")
+    file(MAKE_DIRECTORY "/home/ubuntu/CSE-121-Spring-2023/lab1/lab1_2/build/bootloader-prefix/src/bootloader-stamp/${subDir}")
 endforeach()
 if(cfgdir)
-  file(MAKE_DIRECTORY "/home/ubuntu/esp/lab1/hello_world/build/bootloader-prefix/src/bootloader-stamp${cfgdir}") # cfgdir has leading slash
+  file(MAKE_DIRECTORY "/home/ubuntu/CSE-121-Spring-2023/lab1/lab1_2/build/bootloader-prefix/src/bootloader-stamp${cfgdir}") # cfgdir has leading slash
 endif()

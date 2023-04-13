@@ -1,4 +1,4 @@
-# Install script for directory: /home/ubuntu/esp/lab1/hello_world/main
+# Install script for directory: /home/ubuntu/CSE-121-Spring-2023/lab1/lab1_2/main
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

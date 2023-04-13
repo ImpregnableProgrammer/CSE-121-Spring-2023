@@ -1,4 +1,4 @@
-# Install script for directory: /home/ubuntu/esp/esp-idf/components/mbedtls
+# Install script for directory: /home/ubuntu/CSE-121-Spring-2023/esp-idf/components/mbedtls
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -39,6 +39,6 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("/home/ubuntu/esp/lab1/hello_world/build/esp-idf/mbedtls/mbedtls/cmake_install.cmake")
+  include("/home/ubuntu/CSE-121-Spring-2023/lab1/lab1_2/build/esp-idf/mbedtls/mbedtls/cmake_install.cmake")
 endif()
 
