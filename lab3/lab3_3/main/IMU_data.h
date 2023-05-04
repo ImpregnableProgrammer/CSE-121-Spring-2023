@@ -14,11 +14,11 @@
 void i2c_master_init();
 
 // Turn on IMU sensors
-void activate_IMU();
+void startIMU();
 
 // IMU gyroscope data fetch method
-// Samples and returns gyroscope data with ±250dps range and 400 Hz (>180*2=360Hz) ODR (sampling rate)
-// with default 180 Hz low pass filter bandwidth
+// Read and return gyroscope data with ±250dps range and 50Hz (=25*2=50Hz) ODR (sampling rate)
+// with 25 Hz low pass filter bandwidth
 // See Shannon sampling theorem: https://en.wikipedia.org/wiki/Nyquist%E2%80%93Shannon_sampling_theorem
 void read_gyro(double *gyro_x, double *gyro_y, double *gyro_z);
 

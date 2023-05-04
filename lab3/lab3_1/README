@@ -1,0 +1,4 @@
+# Lab 2 - Wireless bluetooth mouse controller
+In this lab, we used the IMU on the esp32c3 Rust board to detect the orientation of the board and wirelessly over a Bluetooth 5.0 BLE connection change the position of the mouse cursor depending on the pitch (for vertical position of cursor) or the roll (for horizontal position of cursor) of the board. 
+
+I had no issues with this lab.

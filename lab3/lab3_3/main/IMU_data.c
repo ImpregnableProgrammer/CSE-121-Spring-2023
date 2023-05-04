@@ -50,6 +50,12 @@ void IMU_read_reg(uint8_t reg, uint8_t *buf, size_t size) {
     i2c_cmd_link_delete(cmd_handle);
 }
 
+void startIMU() {
+    uint8_t data[1];
+    data[0] = 0x0F; // Data for turning on both sensors in low noise mode
+    IMU_write_reg(0x1F, data, 1); // Write data to PR_MGMT register 0x1F
+}
+
 // Read IMU gyroscope data into pointer arguments
 // Can either read from IMU 1 KB FIFO register OR manually from on-board registers
 // The time between samples for the IMU is stored into tDelta
@@ -58,13 +64,11 @@ void read_gyro(double *gyro_x, double *gyro_y, double *gyro_z)
 {
     // Write to internal registers
     uint8_t data[1]; // Data array
-    // data[0] = 0x10;
-    // IMU_write_reg(0x02, data, 1); // Software reset for sensor
-    data[0] = 0x0C; // Data for turning on gyroscope only in low noise mode
-    IMU_write_reg(0x1F, data, 1); // Write data to PR_MGMT register 0x1F
-    data[0] = 0x60 | 0x07; // Data to set gyroscope range = ±250dps, ODR (sampling rate) = 400Hz
+    data[0] = 0x60 | 0x0A; // Data to set gyroscope range = ±250dps, ODR (sampling rate) = 50Hz
     IMU_write_reg(0x20, data, 1); // Write to GYRO_CONFIG0 register to configure gyroscope
-    const double factor = 250.0f / (1 << 15);
+    data[0] = 0x36; // Set low pass filter bandwidth to 25Hz
+    IMU_write_reg(0x23, data, 1); // Write to register GYRO_CONFIG1 to set low pass filter bandwidth
+    const double factor = 250.0f / (1 << 15); // conversion factor
 
     // Read gyroscope data and output it
     uint8_t gyro[6];
@@ -81,10 +85,8 @@ void read_gyro(double *gyro_x, double *gyro_y, double *gyro_z)
 
 void read_accel(double *accel_x, double *accel_y, double *accel_z) {
     uint8_t data[1];
-    data[0] = 0x03; // Turn on accelerometer only in low noise mode
-    IMU_write_reg(0x1F, data, 1);
     data[0] = 0x20 | 0x07; // Set ±8g range with 400Hz ODR
-    IMU_write_reg(0x21, data, 1); // Wrote data to register ACCEL_CONFIG0
+    IMU_write_reg(0x21, data, 1); // Write data to register ACCEL_CONFIG0
     const double factor = 8.0f / (1 << 15); // conversion factor
 
     // Read and output accelerometer data

@@ -179,23 +179,24 @@ void hid_bluetooth_mouse_task(void *pvParameters)
   // double gyro_x, gyro_y, gyro_z;
   double accel_x, accel_y, accel_z;
   // double angle_x = 0, angle_y = 0, angle_z = 0;
-  // const double gyro_tolerance = 1; // ±1 dps tolerance to register gyroscope readings
-  const double accel_tolerance = 0.025f; // Tolerance for accelerometer data
+  // const double gyro_tolerance = 1.0f; // ±1 dps tolerance to register gyroscope readings
+  const double accel_tolerance = 0.025f; // ±.025g tolerance for accelerometer data
   const size_t TICK_DELAY = 10; // Tick delay between iterations of `while` loop
   const int8_t mult = 127; // multiplier for accelerometer tilt reading
   // double dt = TICK_DELAY * portTICK_PERIOD_MS / 1000.0f; // Time multiplier for gyroscope integration
+  startIMU(); // Turn on IMU sensors
   while (1) {
     vTaskDelay(TICK_DELAY); // Create delay to avoid triggering IDLE task watchdog
                             // Look here: https://stackoverflow.com/a/69065654/5661257
     if (sec_conn) {
       // read_gyro(&gyro_x, &gyro_y, &gyro_z);
       read_accel(&accel_x, &accel_y, &accel_z);
-      // ESP_LOGI(HID_DEMO_TAG, "gyro_x: %.2f, gyro_y: %.2f", gyro_x, gyro_y);
-      // ESP_LOGI(HID_DEMO_TAG, "accel_x: %.2f, accel_y: %.2f", accel_x, accel_y);
+      // ESP_LOGI(HID_DEMO_TAG, "accel_x: %.2f", accel_x);
+      // ESP_LOGI(HID_DEMO_TAG, "accel_y: %.2f", accel_y);
       esp_hidd_send_mouse_value(hid_conn_id,
-          gpio_get_level(GPIO_NUM_9) * HID_MOUSE_LEFT, 
+          0x00, // Mouse button inputs not being recognized on my M1 Macbook Pro 
           accel_x > accel_tolerance || accel_x < -accel_tolerance ? -accel_x * mult: 0,
-          accel_y > accel_tolerance || accel_y < -accel_tolerance ? accel_y * mult: 0);
+          accel_y > accel_tolerance || accel_y < -accel_tolerance ? -accel_y * mult: 0);
     }
   }
 }

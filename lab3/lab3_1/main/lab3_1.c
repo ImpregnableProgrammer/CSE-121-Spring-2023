@@ -64,47 +64,40 @@ void IMU_read_reg(uint8_t reg, uint8_t *buf, size_t size) {
 // Read IMU gyroscope data into pointer arguments
 // Can either read from IMU 1 KB FIFO register OR manually from on-board registers
 // The time between samples for the IMU is stored into tDelta
-void read_IMU(double *gyro_x, double *gyro_y, double *gyro_z, double *tDelta)
+void read_accel(double *accel_x, double *accel_y, double *accel_z)
 {
     // Write to internal registers
-    uint8_t data[1] = {0x0F}; // Choose PWR_MGMT register 0x1F for writing to turn on sensors
-    const float factor = 250.0f / (1 << 15); // Gyroscope scaling factor depending on range
-    IMU_write_reg(0x1F, data, 1); // Turn on accelerometer and gyroscope sensors
-    data[0] = 0x60 | 0x05; // Set gyroscope range = ±250dps, ODR (sampling rate) = 1.6 kHz
-    *tDelta = 1 / 1600.0f; // Set tDelta to 1/ODR
-    IMU_write_reg(0x20, data, 1);
+    uint8_t data[1];
+    data[0] = 0x0F; // Turn on IMU sensors
+    IMU_write_reg(0x1F, data, 1); // Write data to PR_MGMT register 0x1F
+    data[0] = 0x20 | 0x07; // Set ±8g range with 400Hz ODR
+    IMU_write_reg(0x21, data, 1); // Write data to register ACCEL_CONFIG0
+    const double factor = 8.0f / (1 << 15); // conversion factor
 
-    // Read gyroscope data and output it
-    uint8_t gyro[6];
-    IMU_read_reg(0x11, &gyro[0], 1);
-    IMU_read_reg(0x12, &gyro[1], 1);
-    IMU_read_reg(0x13, &gyro[2], 1);
-    IMU_read_reg(0x14, &gyro[3], 1);
-    IMU_read_reg(0x15, &gyro[4], 1);
-    IMU_read_reg(0x16, &gyro[5], 1);
-    *gyro_x = (int16_t)((gyro[0] << 8) | gyro[1]) * factor;
-    *gyro_y = (int16_t)((gyro[2] << 8) | gyro[3]) * factor;
-    *gyro_z = (int16_t)((gyro[4] << 8) | gyro[5]) * factor;
+    // Read and output accelerometer data
+    uint8_t accel[6];
+    IMU_read_reg(0x0B, &accel[0], 1);
+    IMU_read_reg(0x0C, &accel[1], 1);
+    IMU_read_reg(0x0D, &accel[2], 1);
+    IMU_read_reg(0x0E, &accel[3], 1);
+    IMU_read_reg(0x0F, &accel[4], 1);
+    IMU_read_reg(0x10, &accel[5], 1);
+    *accel_x = (int16_t)((accel[0] << 8) | accel[1]) * factor;
+    *accel_y = (int16_t)((accel[2] << 8) | accel[3]) * factor;
+    *accel_z = (int16_t)((accel[4] << 8) | accel[5]) * factor;
 }
 
 // Create task
 void task_sensor(void *pvParameter)
 {
-    double gyro_x, gyro_y, gyro_z, tDelta;
-    double x_angle = 0, y_angle = 0, z_angle = 0;
-    const float gyro_thresh = 1; // ±1 threshold for gyroscope measurements
-    const float angle_thresh = 1; // ±1 threshold for inclination
+    double accel_x = 0, accel_y = 0, accel_z = 0;
+    const float accel_thresh = 0.2f; // ±0.1g threshold for accelerometer
     while (1) {
-        read_IMU(&gyro_x, &gyro_y, &gyro_z, &tDelta);
-        if (gyro_x > gyro_thresh || gyro_x < -gyro_thresh) x_angle += gyro_x * tDelta;
-        if (gyro_y > gyro_thresh || gyro_y < -gyro_thresh ) y_angle += gyro_y * tDelta;
-        // if (gyro_z > gyro_thresh || gyro_z < -gyro_thresh) z_angle += gyro_z * tDelta; // z angle not needed
-        // ESP_LOGI(TAG, "gyro_x: %.2f, gyro_y: %.2f, gyro_z: %.2f", gyro_x, gyro_y, gyro_z); // Output gyroscope values
-	      // ESP_LOGI(TAG, "x_angle: %.2f, y_angle: %.2f, z_angle: %.2f", x_angle, y_angle, z_angle); // Output angle values
-	      // vTaskDelay(2000 / portTICK_PERIOD_MS); // 2 sec delay
+        read_accel(&accel_x, &accel_y, &accel_z);
+	    // vTaskDelay(2000 / portTICK_PERIOD_MS); // 2 sec delay
         ESP_LOGI(TAG, "%s%s",
-            x_angle > angle_thresh ? "DOWN " : x_angle < -angle_thresh ? "UP " : "",
-            y_angle > angle_thresh ? "RIGHT" : y_angle < -angle_thresh ? "LEFT" : ""); // Output inclination direction of board
+            accel_y < -accel_thresh ? "DOWN " : accel_y > accel_thresh ? "UP " : "",
+            accel_x > accel_thresh ? "LEFT" : accel_x < -accel_thresh ? "RIGHT" : ""); // Output pitch and roll of the board
     }
 }
 

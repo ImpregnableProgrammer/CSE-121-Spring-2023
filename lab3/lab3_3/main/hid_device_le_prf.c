@@ -28,6 +28,7 @@ static hid_report_map_t hid_rpt_map[HID_NUM_REPORTS];
 
 // HID Report Map characteristic value
 // Keyboard report descriptor (using format for Boot interface descriptor)
+// Good reference document: https://www.usb.org/document-library/device-class-definition-hid-111
 static const uint8_t hidReportMap[] = {
     0x05, 0x01,  // Usage Page (Generic Desktop)
     0x09, 0x02,  // Usage (Mouse)
