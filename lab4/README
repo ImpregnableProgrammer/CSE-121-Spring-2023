@@ -1,0 +1,4 @@
+# Lab 4 - Writing temperature sensor data to an LCD display
+In this lab we worked on initializing and then writing data to display on a DFRobot 1602 backlit LCD module. We displayed temperature and humidity data gathered over I2C from the sensor on the Rust ESP32-C3 development board, which we had already implemented an API for in lab 2.
+
+I ran into no serious issues while working on this lab.
