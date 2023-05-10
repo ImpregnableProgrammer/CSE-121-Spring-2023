@@ -1,34 +1,7 @@
-#include <stdio.h>
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "driver/i2c.h"
+#include "lcd.h"
 
-// Project for lab 4 - controlling an LCD display LCD1602RGB from DFRobot
 // LCD Datasheet: https://www.mouser.com/pdfdocs/DFR0464Datasheet.pdf -- controls LCD display output
 // LED driver datasheet: https://www.nxp.com/docs/en/data-sheet/PCA9633.pdf -- controls LCD color and brightness
-
-#define LCD_ADDR 0x7C // Target address for LCD output driver
-#define RGB_ADDR 0xC0 // 7-bit target address for LEDs driver
-
-#define I2C_MASTER_SCL_IO 8 // GPIO pin for esp32c3 SCL
-#define I2C_MASTER_SDA_IO 10 // GPIO pin for esp32c3 SDA
-#define I2C_MASTER_NUM I2C_NUM_0 // Port number (0) for i2c master
-#define I2C_MASTER_FREQ_HZ 400000 // i2c SCL operating frequency (400 kHz)
-
-// Initialize i2c interface
-void i2c_master_init()
-{
-    i2c_config_t conf = {
-        .mode = I2C_MODE_MASTER,
-        .sda_io_num = I2C_MASTER_SDA_IO,
-        .sda_pullup_en = GPIO_PULLUP_ENABLE,
-        .scl_io_num = I2C_MASTER_SCL_IO,
-        .scl_pullup_en = GPIO_PULLUP_ENABLE,
-        .master.clk_speed = I2C_MASTER_FREQ_HZ,
-    };
-    i2c_param_config(I2C_MASTER_NUM, &conf); 
-    i2c_driver_install(I2C_MASTER_NUM, conf.mode, 0, 0, 0);
-} 
 
 // Initialize LCD display
 // LCD set to 2-line, 5x8 dot display with cursor and blinking off
@@ -90,7 +63,7 @@ void setRGB(uint8_t red, uint8_t green, uint8_t blue) {
     i2c_cmd_link_delete(cmd_handle);
 }
 
-// Set cursor to line given
+// Set cursor to line given % 2
 void set_line(uint8_t line) {
     i2c_cmd_handle_t cmd_handle = i2c_cmd_link_create();
     i2c_master_start(cmd_handle);
@@ -115,19 +88,4 @@ void write_string(char* str, uint8_t len) {
     i2c_master_stop(cmd_handle);
     i2c_master_cmd_begin(I2C_MASTER_NUM, cmd_handle, 1000 / portTICK_PERIOD_MS);
     i2c_cmd_link_delete(cmd_handle);
-}
-
-void app_main(void)
-{
-    // Initialize i2c interface
-    i2c_master_init();
-    // Initialize LCD display
-    lcd_init();
-    // Set backlight color for LCD to green
-    setRGB(0, 255, 0);
-    // Output to screen
-    set_line(0);
-    write_string("Hello CSE121!", 13);
-    set_line(1);
-    write_string("Kapur", 5);
 }
