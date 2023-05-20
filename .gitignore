@@ -62,3 +62,6 @@ dkms.conf
 
 # vscode files
 .vscode/
+
+# miscellaneous files
+.swp
