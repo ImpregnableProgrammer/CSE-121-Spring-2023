@@ -75,10 +75,11 @@ static EventGroupHandle_t s_wifi_event_group;
 #define WIFI_CONNECTED_BIT BIT0
 #define WIFI_FAIL_BIT      BIT1
     
-static const char *TAG = "lab5_wifi_http";
+static const char *TAG = "lab5";
 
 static int s_retry_num = 0;
 
+// WiFi event handler method
 static void event_handler(void* arg, esp_event_base_t event_base,
                                 int32_t event_id, void* event_data)
 {
@@ -101,6 +102,8 @@ static void event_handler(void* arg, esp_event_base_t event_base,
     }
 }
 
+// Initialize and connect to wifi
+// This was taken fr4om the following ESP32 example code: https://github.com/espressif/esp-idf/tree/54576b7528b182256c027de86eb605a172bc2821/examples/wifi/getting_started/station
 void wifi_init_sta(void)
 {
     s_wifi_event_group = xEventGroupCreate();
@@ -248,7 +251,7 @@ static void http_get_request(const char *SERVER, const char *PORT, const char *R
     // discarding the rest of the response if the buffer isn't large enough
     int r = read(s, buf, buf_len - 1);
     if (r < 0) {
-        ESP_LOGE(TAG, "error reading response from socket");
+        ESP_LOGE(TAG, "error reading response from socket, errno=%d", errno);
         close(s);
         return;
     }
@@ -277,7 +280,7 @@ static void http_post_request(const char *SERVER, const char *PORT, const char *
 
     // Set timeout for receving server response
     struct timeval receiving_timeout;
-    receiving_timeout.tv_sec = 5;
+    receiving_timeout.tv_sec = 10;
     receiving_timeout.tv_usec = 0;
     if (setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, &receiving_timeout,
             sizeof(receiving_timeout)) < 0) {
@@ -326,6 +329,7 @@ static void https_get_request(const char* URL, const char *REQUEST, char* buf, s
     } else {
         ESP_LOGE(TAG, "Connection failed...");
         esp_tls_conn_destroy(tls);
+        return;
     }
 
     // Send request to server
@@ -338,8 +342,9 @@ static void https_get_request(const char* URL, const char *REQUEST, char* buf, s
             ESP_LOGI(TAG, "%d bytes written", ret);
             written_bytes += ret;
         } else if (ret != ESP_TLS_ERR_SSL_WANT_READ && ret != ESP_TLS_ERR_SSL_WANT_WRITE) {
-            ESP_LOGE(TAG, "esp_tls_conn_write  returned: [0x%02X](%s)", ret, esp_err_to_name(ret));
+            ESP_LOGE(TAG, "esp_tls_conn_write returned: [0x%02X](%s)", ret, esp_err_to_name(ret));
             esp_tls_conn_destroy(tls);
+            return;
         }
     } while (written_bytes < strlen(REQUEST));
 
@@ -349,63 +354,46 @@ static void https_get_request(const char* URL, const char *REQUEST, char* buf, s
     int ret = esp_tls_conn_read(tls, (char *)buf, buf_len - 1);
     if (ret < 0) {
         ESP_LOGE(TAG, "esp_tls_conn_read returned [-0x%02X](%s)", -ret, esp_err_to_name(ret));
-        return;
     }
-
-    /*do {
-        len = buf_len - 1;
-        memset(buf, 0x00, buf_len);
-        ret = esp_tls_conn_read(tls, (char *)buf, len);
-
-        if (ret == ESP_TLS_ERR_SSL_WANT_WRITE  || ret == ESP_TLS_ERR_SSL_WANT_READ) {
-            continue;
-        } else if (ret < 0) {
-            ESP_LOGE(TAG, "esp_tls_conn_read  returned [-0x%02X](%s)", -ret, esp_err_to_name(ret));
-            break;
-        } else if (ret == 0) {
-            ESP_LOGI(TAG, "connection closed");
-            break;
-        }
-
-        ESP_LOGD(TAG, "%d bytes read", ret);
-        // Print response directly to stdout as it is read
-        for (int i = 0; i < len; i++) {
-            putchar(buf[i]);
-        }
-        putchar('\n'); // JSON output doesn't have a newline at end
-    } while (1); */
+    esp_tls_conn_destroy(tls);
+    return;
 }
 
+// HTTP request task
 static void https_request_task(void *pvParameters) 
 {
     const char
         *PHONE_SERVER = "Rohan-iPhone-14.local",
         *PHONE_PORT = "8080",
-        *LOCATION_REQUEST = "GET /root/location HTTP/1.0";
+        *LOCATION_REQUEST = "GET /root/location HTTP/1.1\n\n";
 
-    char LOCATION[16], WTTR[256], WTTR_REQUEST[100], CONTENT[256 + 64], POST_REQUEST[256 + 128];
+    char LOCATION[16], WTTR_REQUEST[100], WTTR[512], CONTENT[512 + 32], POST[512 + 32 + 64];
 
     // Get location from phone and create wttr.in request
     http_get_request(PHONE_SERVER, PHONE_PORT, LOCATION_REQUEST, LOCATION, sizeof(LOCATION));
-    snprintf(WTTR_REQUEST, sizeof(WTTR_REQUEST), "GET /%s?0&Q&A&T HTTP/1.1\n"
+    ESP_LOGI(TAG, "LOCATION: %s", LOCATION);
+    snprintf(WTTR_REQUEST, sizeof(WTTR_REQUEST), "GET /%s?0&q&A&T HTTP/1.1\n"
         "Host: www.wttr.in:443\n"
         "User-Agent: esp-idf/1.0 esp32\n\n", LOCATION);
 
     int temperature = 0, humidity = 0;
     while (1) {
+        memset(WTTR, 0x0, sizeof(WTTR));
         https_get_request("https://www.wttr.in/", WTTR_REQUEST, WTTR, sizeof(WTTR));
+        ESP_LOGI(TAG, "WTTR: %s", WTTR);
         read_temperature_and_humidity(&temperature, &humidity);
-        snprintf(CONTENT, sizeof(CONTENT), "%s\nSensor temp: %d\nSensor humidity: %d\n", WTTR, temperature, humidity);
-        snprintf(POST_REQUEST, sizeof(POST_REQUEST), "POST / HTTP/1.0\nContent-Length: %d\n\n%s", strlen(CONTENT), CONTENT);
-        http_post_request(PHONE_SERVER, PHONE_PORT, POST_REQUEST);
+        snprintf(CONTENT, sizeof(CONTENT), "%s\nTemp: %dC\nHum: %d%%\n", WTTR, temperature, humidity);
+        snprintf(POST, sizeof(POST), "POST / HTTP/1.0\nContent-Length: %d\n\n%s", strlen(CONTENT), CONTENT);
+        http_post_request(PHONE_SERVER, PHONE_PORT, POST);
         ESP_LOGI(TAG, "Done!");
+        ESP_LOGI(TAG, "Heap size: %lu", esp_get_free_heap_size()); // See if we're freeing memory correctly
         vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
 }
 
 void app_main(void)
 {
-    //Initialize NVS
+    //Initialize NVS (non-volatile storage) on esp32
     esp_err_t ret = nvs_flash_init();
     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
       ESP_ERROR_CHECK(nvs_flash_erase());
@@ -414,8 +402,9 @@ void app_main(void)
     ESP_ERROR_CHECK(ret);
 
     ESP_LOGI(TAG, "ESP_WIFI_MODE_STA");
-    wifi_init_sta();
+    wifi_init_sta(); // Initialize wifi
 
-    i2c_master_init();
-    xTaskCreate(&https_request_task, "https request", 4096, NULL, 1, NULL); // "1" is task priority level
+    i2c_master_init(); // Initialize i2c
+    // Stack size is 8192 "words" to avoid stack overflow errors
+    xTaskCreate(&https_request_task, "https request", 8192, NULL, 1, NULL); // "1" is task priority level
 }
