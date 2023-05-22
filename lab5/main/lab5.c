@@ -103,7 +103,7 @@ static void event_handler(void* arg, esp_event_base_t event_base,
 }
 
 // Initialize and connect to wifi
-// This was taken fr4om the following ESP32 example code: https://github.com/espressif/esp-idf/tree/54576b7528b182256c027de86eb605a172bc2821/examples/wifi/getting_started/station
+// This is based on the following ESP32 example code: https://github.com/espressif/esp-idf/tree/54576b7528b182256c027de86eb605a172bc2821/examples/wifi/getting_started/station
 void wifi_init_sta(void)
 {
     s_wifi_event_group = xEventGroupCreate();
@@ -218,6 +218,7 @@ int init_connection(const char *SERVER, const char *PORT) {
 
 // Send an HTTP GET request to the server given
 // and write the response into the `buf` given
+// This is based on the following example code: https://github.com/espressif/esp-idf/blob/54576b7528b182256c027de86eb605a172bc2821/examples/protocols/http_request/main/http_request_example_main.c
 static void http_get_request(const char *SERVER, const char *PORT, const char *REQUEST, char* buf, const size_t buf_len)
 {   
     // Create socket connection to server
@@ -262,6 +263,7 @@ static void http_get_request(const char *SERVER, const char *PORT, const char *R
 
 // Send an HTTP POST request to the server given
 // and write the response to stdout
+// This is based on the same example code as the method above
 static void http_post_request(const char *SERVER, const char *PORT, const char *REQUEST)
 {
     int s = init_connection(SERVER, PORT);
@@ -308,7 +310,7 @@ static void http_post_request(const char *SERVER, const char *PORT, const char *
 
 // This performs an HTTPS GET request using the CA certificate bundle supplied with esp-idf
 // to verify the server identity over TLS for the URL given
-// This is taken and modified from the example here: https://github.com/espressif/esp-idf/blob/54576b7528b182256c027de86eb605a172bc2821/examples/protocols/https_request/main/https_request_example_main.c#L257
+// This is based on the example code here: https://github.com/espressif/esp-idf/blob/54576b7528b182256c027de86eb605a172bc2821/examples/protocols/https_request/main/https_request_example_main.c#L257
 // The response is written into the buffer given
 static void https_get_request(const char* URL, const char *REQUEST, char* buf, size_t buf_len)
 {   
