@@ -1,0 +1,81 @@
+#! /usr/bin/python3
+# Raspberry Pi 4 LED control over GPIO: https://www.instructables.com/Using-Your-Raspberry-Pis-GPIO-Pins-to-Control-an-L/
+# Uses GPIO 5 (header pin 29) for output, pin 30 for GND
+# RPi pinout reference: https://pinout.xyz/pinout/pin11_gpio17
+
+import RPi.GPIO as GPIO
+import sys
+import time
+
+# Morse Table: https://gist.github.com/mohayonao/094c71af14fe4791c5dd
+morse = {
+  "0": "-----",
+  "1": ".----",
+  "2": "..---",
+  "3": "...--",
+  "4": "....-",
+  "5": ".....",
+  "6": "-....",
+  "7": "--...",
+  "8": "---..",
+  "9": "----.",
+  "a": ".-",
+  "b": "-...",
+  "c": "-.-.",
+  "d": "-..",
+  "e": ".",
+  "f": "..-.",
+  "g": "--.",
+  "h": "....",
+  "i": "..",
+  "j": ".---",
+  "k": "-.-",
+  "l": ".-..",
+  "m": "--",
+  "n": "-.",
+  "o": "---",
+  "p": ".--.",
+  "q": "--.-",
+  "r": ".-.",
+  "s": "...",
+  "t": "-",
+  "u": "..-",
+  "v": "...-",
+  "w": ".--",
+  "x": "-..-",
+  "y": "-.--",
+  "z": "--..",
+  ".": ".-.-.-",
+  ",": "--..--",
+  "?": "..--..",
+  "!": "-.-.--",
+  "-": "-....-",
+  "/": "-..-.",
+  "@": ".--.-.",
+  "(": "-.--.",
+  ")": "-.--.-"
+}
+
+if __name__ == '__main__':
+    GPIO.setmode(GPIO.BCM) # GPIO based numbering (instead of header pin numbers)
+    GPIO.setup(5, GPIO.OUT) # GPIO pin 5
+    iters = int(sys.argv[1])
+    msg = sys.argv[2].lower()
+    dotDelay = .1
+    # Morse timing rules: https://www.codebug.org.uk/learn/step/541/morse-code-timing-rules/
+    for i in range(iters):
+        for s in msg:
+            if s == ' ':
+                time.sleep(7 * dotDelay) # space between words
+                continue
+            for c in morse[s]:
+                GPIO.output(5, True)
+                if c == '-':
+                    time.sleep(3 * dotDelay) # dash is 3x dot
+                else:
+                    time.sleep(dotDelay) # dot
+                GPIO.output(5, False)
+                time.sleep(dotDelay) # space between dot/dash
+            time.sleep(2 * dotDelay) # space between letters
+        
+
