@@ -2,4 +2,4 @@
 ## Introduction
 In this lab, we connected an LED to the Raspberry Pi over GPIO to output messages in Morse code, and the ESP32 was then programmed to translate this LED Morse code output using a photodiode connected to the on-board ADC (Analog-Digital Convertor) channel. The Python script `send` can be used to output morse code over an LED connected to GPIO 5 on the Raspberry Pi by first running `chmod +x send` and then invoking the script as `./send <# repeats> "<Message>"`.
 
-## References
+My implementation begins to fail when the message is sent at around **8 chars/sec**. This is with a `dotDelay` of .01 (10 ms) in the Python script. To test this, run `time ./send 1 'hello world!!'` with the photodiode and LED set up, and then divide the length of the input (13) by the time elapsed. I also used a **300 kOhm resistor** in series with the photodiode in order to obtain accurate readings with a considerable threshold (1000 mV) for the analog voltage readings. The LED was placed in series with a **473 Ohm** resistor when connected to the Raspberry Pi 4.

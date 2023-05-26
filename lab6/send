@@ -66,7 +66,7 @@ if __name__ == '__main__':
     GPIO.setup(5, GPIO.OUT) # GPIO pin 5
     iters = int(sys.argv[1])
     msg = sys.argv[2].lower()
-    dotDelay = .009
+    dotDelay = .01
     # Morse timing rules: https://www.codebug.org.uk/learn/step/541/morse-code-timing-rules/
     for i in range(iters):
         for s in msg:

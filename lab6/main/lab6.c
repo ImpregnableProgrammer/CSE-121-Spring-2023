@@ -62,7 +62,7 @@ void app_main(void)
 
     // Read analog input
     int raw = 0, voltage = 0, i = 0, on_count = 0, off_count = 0;
-    const int thresh = 1000, delay = 10, dot = 10;
+    const int thresh = 1000, delay = 10, dot = 10; // "dot" is "dotDelay" in ms from the Python script
     const int unit = dot / delay;
     char buf[MAX_LEN];
     while (1) {
