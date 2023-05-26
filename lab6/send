@@ -56,12 +56,17 @@ morse = {
   ")": "-.--.-"
 }
 
+# Get morse lists for C
+print(len(morse))
+print('{'+','.join("'%s'"%(k) for k in morse.keys())+'}')
+print('{'+','.join('"%s"'%(morse[k]) for k in morse.keys())+'}')
+
 if __name__ == '__main__':
     GPIO.setmode(GPIO.BCM) # GPIO based numbering (instead of header pin numbers)
     GPIO.setup(5, GPIO.OUT) # GPIO pin 5
     iters = int(sys.argv[1])
     msg = sys.argv[2].lower()
-    dotDelay = .1
+    dotDelay = .009
     # Morse timing rules: https://www.codebug.org.uk/learn/step/541/morse-code-timing-rules/
     for i in range(iters):
         for s in msg:
