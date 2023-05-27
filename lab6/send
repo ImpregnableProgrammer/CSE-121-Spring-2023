@@ -56,19 +56,20 @@ morse = {
   ")": "-.--.-"
 }
 
-# Get morse lists for C
-print(len(morse))
-print('{'+','.join("'%s'"%(k) for k in morse.keys())+'}')
-print('{'+','.join('"%s"'%(morse[k]) for k in morse.keys())+'}')
+# Get morse lists and lengths for C
+#print(len(morse))
+#print('{'+','.join("'%s'"%(k) for k in morse.keys())+'}')
+#print('{'+','.join('"%s"'%(morse[k]) for k in morse.keys())+'}')
 
 if __name__ == '__main__':
     GPIO.setmode(GPIO.BCM) # GPIO based numbering (instead of header pin numbers)
     GPIO.setup(5, GPIO.OUT) # GPIO pin 5
     iters = int(sys.argv[1])
     msg = sys.argv[2].lower()
-    dotDelay = .01
+    dotDelay = .0001
     # Morse timing rules: https://www.codebug.org.uk/learn/step/541/morse-code-timing-rules/
     for i in range(iters):
+        t = time.time()
         for s in msg:
             if s == ' ':
                 time.sleep(7 * dotDelay) # space between words
@@ -82,5 +83,6 @@ if __name__ == '__main__':
                 GPIO.output(5, False)
                 time.sleep(dotDelay) # space between dot/dash
             time.sleep(2 * dotDelay) # space between letters
+        print("Time elapsed: {}".format(time.time() - t))
         
 

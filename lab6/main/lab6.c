@@ -62,36 +62,38 @@ void app_main(void)
 
     // Read analog input
     int raw = 0, voltage = 0, i = 0, on_count = 0, off_count = 0;
-    const int thresh = 1000, delay = 10, dot = 10; // "dot" is "dotDelay" in ms from the Python script
-    const int unit = dot / delay;
-    char buf[MAX_LEN];
+    const int thresh = 700, delay = 100;//, dot = 10; // "dot" is "dotDelay" in ms from the Python script, "thresh" is analog voltage threshold
+    const int unit = 10; // Basic time unit (dot)
+    char buf[MAX_LEN] = {'\0'};
     while (1) {
         // Detection and translation
         ESP_ERROR_CHECK(adc_oneshot_read(adc1_handle, CHANNEL, &raw));
         ESP_ERROR_CHECK(adc_cali_raw_to_voltage(cali_handle, raw, &voltage));
-        //ESP_LOGI(TAG, "%d mV", voltage);
+       //ESP_LOGI(TAG, "%d mV", voltage);
         if (voltage > thresh) {
+            //printf("off: %d\n", off_count);
             off_count = 0;
             on_count++;
             //printf("on: %d\n", on_count);
         } else if (on_count > 0 || off_count > 0) {
             off_count++;
-            //printf("off: %d\n", off_count);
             if (off_count == unit) {
-                buf[i++] = on_count > unit ? '-' : '.';
+                buf[i++] = on_count >= 3 * unit ? '-' : '.';
+                //printf("on count: %d, buf: %s\n", on_count, buf);
                 on_count = 0;
             } else if (off_count == 3 * unit) {
                 buf[i++] = '\0';
                 translate(buf);
                 memset(buf, 0x0, sizeof(buf));
                 i = 0;
-            } else if (off_count == 6 * unit) {
+            } else if (off_count == 7 * unit) {
+                //printf("buf: %d\n", buf);
                 putchar(' ');
-            } else if (off_count > 12 * unit) {
+            } else if (off_count > 20 * unit) {
                 off_count = 0;
                 putchar('\n');
             }
         }
-        vTaskDelay(delay / portTICK_PERIOD_MS);
+        //vTaskDelay(delay / portTICK_PERIOD_MS);
     }
 }
