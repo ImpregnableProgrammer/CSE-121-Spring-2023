@@ -66,10 +66,12 @@ if __name__ == '__main__':
     GPIO.setup(5, GPIO.OUT) # GPIO pin 5
     iters = int(sys.argv[1])
     msg = sys.argv[2].lower()
-    dotDelay = .0001
+    dotDelay = .0005
     # Morse timing rules: https://www.codebug.org.uk/learn/step/541/morse-code-timing-rules/
+    totalTime = 0
     for i in range(iters):
         t = time.time()
+        t2 = 0
         for s in msg:
             if s == ' ':
                 time.sleep(7 * dotDelay) # space between words
@@ -83,6 +85,9 @@ if __name__ == '__main__':
                 GPIO.output(5, False)
                 time.sleep(dotDelay) # space between dot/dash
             time.sleep(2 * dotDelay) # space between letters
-        print("Time elapsed: {}".format(time.time() - t))
+            t2 = time.time() - t
+        print("Time elapsed: {}".format(t2))
+        totalTime += t2
+    print("Total time elapsed: {}".format(totalTime))
         
 
