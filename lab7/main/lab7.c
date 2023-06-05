@@ -8,7 +8,7 @@
 #include "esp_timer.h"
 #include "driver/gpio.h"
 
-// Ultrasonic sensor guide: https://www.adafruit.com/product/4742
+// Ultrasonic sensor guide: https://www.adafruit.com/product/4007
 
 const char *TAG = "lab 7";
 
