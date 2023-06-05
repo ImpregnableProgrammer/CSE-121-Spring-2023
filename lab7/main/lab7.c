@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <unistd.h> // for usleep() 
 #include <sys/time.h> // For timing
-#include <math.h> // For sqrt()
 #include "i2c.h"
 #include "sensor.h"
 #include "esp_log.h"
@@ -17,7 +16,8 @@ void config_gpio() {
     // Reset pins
     gpio_reset_pin(GPIO_NUM_0);
     gpio_reset_pin(GPIO_NUM_1);
-    gpio_config_t config;
+
+    gpio_config_t config; // config struct
 
     // Set output pin GPIO 0
     config.pin_bit_mask = 0b01;
@@ -39,13 +39,8 @@ void read_ultrasonic_sensor_distance() {
         ESP_ERROR_CHECK(usleep(10));
         ESP_ERROR_CHECK(gpio_set_level(GPIO_NUM_0, 0));
     }
-    // Another way for timing, but not needed
-    //struct timeval tv1;
-    //struct timeval tv2;
-    //ESP_ERROR_CHECK(gettimeofday(&tv1, NULL));
     int64_t t1 = esp_timer_get_time();
-    while (gpio_get_level(GPIO_NUM_1) == 1);
-    // ESP_ERROR_CHECK(gettimeofday(&tv2, NULL));
+    while (gpio_get_level(GPIO_NUM_1) == 1); // Wait while pulse is high
     int64_t t2 = esp_timer_get_time();
     int temperature;
     read_temperature_and_humidity(&temperature, NULL);
@@ -58,8 +53,8 @@ void app_main(void)
 {   
     i2c_master_init();
     config_gpio();
-    while(1) {
+    while(1) { // Output distance at current temperature once per second
         read_ultrasonic_sensor_distance();
-        vTaskDelay(pdMS_TO_TICKS(100));
+        vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }   
