@@ -1,11 +1,10 @@
 #include <stdio.h>
 #include <unistd.h> // for usleep() 
-#include <sys/time.h> // For timing
 #include "i2c.h"
 #include "sensor.h"
 #include "esp_log.h"
 #include "esp_err.h"
-#include "esp_timer.h"
+#include "esp_timer.h" // For timing
 #include "driver/gpio.h"
 
 // Ultrasonic sensor guide: https://www.adafruit.com/product/4007
