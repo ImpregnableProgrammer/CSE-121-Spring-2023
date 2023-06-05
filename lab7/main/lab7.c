@@ -1,52 +1,65 @@
 #include <stdio.h>
+#include <unistd.h> // for usleep() 
+#include <sys/time.h> // For timing
+#include <math.h> // For sqrt()
 #include "i2c.h"
-#include "esp_log.h"
 #include "sensor.h"
-
-#define ULTRA_ADDR 0x57
+#include "esp_log.h"
+#include "esp_err.h"
+#include "esp_timer.h"
+#include "driver/gpio.h"
 
 // Ultrasonic sensor guide: https://www.adafruit.com/product/4742
 
 const char *TAG = "lab 7";
 
-void read_ultrasonic_sensor() {
-    // Initialize ultranoic sensor ranging session
-    // i2c_cmd_handle_t cmd_handle = i2c_cmd_link_create();
-    // i2c_master_start(cmd_handle);
-    // i2c_master_write_byte(cmd_handle, (ULTRA_ADDR << 1) | I2C_MASTER_READ, true);
-    // i2c_master_stop(cmd_handle);
-    // i2c_master_cmd_begin(I2C_MASTER_NUM, cmd_handle, 1000 / portTICK_PERIOD_MS);
-    // i2c_cmd_link_delete(cmd_handle);
+void config_gpio() {
+    // Reset pins
+    gpio_reset_pin(GPIO_NUM_0);
+    gpio_reset_pin(GPIO_NUM_1);
+    gpio_config_t config;
 
-    // Delay
-    // vTaskDelay(10 / portTICK_PERIOD_MS);
+    // Set output pin GPIO 0
+    config.pin_bit_mask = 0b01;
+    config.intr_type = GPIO_INTR_DISABLE;
+    config.mode = GPIO_MODE_OUTPUT;
+    ESP_ERROR_CHECK(gpio_config(&config));
 
-    // Start ultrasonic ranging session
-    // uint8_t bytes[4];
-    i2c_cmd_handle_t cmd_handle = i2c_cmd_link_create();
-    i2c_master_start(cmd_handle);
-    i2c_master_write_byte(cmd_handle, (ULTRA_ADDR << 1) | I2C_MASTER_READ, true);
-    i2c_master_stop(cmd_handle);
-    i2c_master_cmd_begin(I2C_MASTER_NUM, cmd_handle, 1000 / portTICK_PERIOD_MS);
-    i2c_cmd_link_delete(cmd_handle);
+    // Set input pin GPIO 1
+    config.pin_bit_mask = 0b10;
+    config.mode = GPIO_MODE_INPUT;
+    ESP_ERROR_CHECK(gpio_config(&config));
+}
 
-    vTaskDelay(10 / portTICK_PERIOD_MS);
-    
-    uint8_t byte;
-    cmd_handle = i2c_cmd_link_create();
-    i2c_master_start(cmd_handle);
-    i2c_master_read(cmd_handle, &byte, sizeof(byte), I2C_MASTER_ACK);
-    i2c_master_stop(cmd_handle);
-    i2c_master_cmd_begin(I2C_MASTER_NUM, cmd_handle, 1000 / portTICK_PERIOD_MS);
-    i2c_cmd_link_delete(cmd_handle);
-    ESP_LOGI(TAG, "Byte: %u", byte);
+void read_ultrasonic_sensor_distance() {
+    while (gpio_get_level(GPIO_NUM_1) == 0) {
+        ESP_ERROR_CHECK(gpio_set_level(GPIO_NUM_0, 0));
+        ESP_ERROR_CHECK(usleep(2));
+        ESP_ERROR_CHECK(gpio_set_level(GPIO_NUM_0, 1));
+        ESP_ERROR_CHECK(usleep(10));
+        ESP_ERROR_CHECK(gpio_set_level(GPIO_NUM_0, 0));
+    }
+    // Another way for timing, but not needed
+    //struct timeval tv1;
+    //struct timeval tv2;
+    //ESP_ERROR_CHECK(gettimeofday(&tv1, NULL));
+    int64_t t1 = esp_timer_get_time();
+    while (gpio_get_level(GPIO_NUM_1) == 1);
+    // ESP_ERROR_CHECK(gettimeofday(&tv2, NULL));
+    int64_t t2 = esp_timer_get_time();
+    int temperature;
+    read_temperature_and_humidity(&temperature, NULL);
+    // Formula: http://hyperphysics.phy-astr.gsu.edu/hbase/Sound/souspe.html
+    float speed = (331.4 + 0.6 * temperature) / 10; // in cm/ms
+    printf("Distance: %.1f cm at %dC\n", (t2 - t1) * speed / 1000.0f, temperature);
 }
 
 void app_main(void)
-{ 
+{   
     i2c_master_init();
-    while (1) {
-        read_ultrasonic_sensor();
-        vTaskDelay(100 / portTICK_PERIOD_MS);
+    config_gpio();
+    while(1) {
+        read_ultrasonic_sensor_distance();
+        vTaskDelay(pdMS_TO_TICKS(100));
     }
 }   
