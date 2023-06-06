@@ -33,7 +33,7 @@ void config_gpio() {
 void read_ultrasonic_sensor_distance() {
     float distance = 0.0f;
     int temperature = 0, count = 0;
-    while (count < 10) {
+    while (count < 10) { // Average over 10 distance readings
         while (gpio_get_level(GPIO_NUM_1) == 0) {
             ESP_ERROR_CHECK(gpio_set_level(GPIO_NUM_0, 0));
             ESP_ERROR_CHECK(usleep(2));
