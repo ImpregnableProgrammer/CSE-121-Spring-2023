@@ -31,21 +31,28 @@ void config_gpio() {
 }
 
 void read_ultrasonic_sensor_distance() {
-    while (gpio_get_level(GPIO_NUM_1) == 0) {
-        ESP_ERROR_CHECK(gpio_set_level(GPIO_NUM_0, 0));
-        ESP_ERROR_CHECK(usleep(2));
-        ESP_ERROR_CHECK(gpio_set_level(GPIO_NUM_0, 1));
-        ESP_ERROR_CHECK(usleep(10));
-        ESP_ERROR_CHECK(gpio_set_level(GPIO_NUM_0, 0));
+    float distance = 0.0f;
+    int temperature = 0, count = 0;
+    while (count < 10) {
+        while (gpio_get_level(GPIO_NUM_1) == 0) {
+            ESP_ERROR_CHECK(gpio_set_level(GPIO_NUM_0, 0));
+            ESP_ERROR_CHECK(usleep(2));
+            ESP_ERROR_CHECK(gpio_set_level(GPIO_NUM_0, 1));
+            ESP_ERROR_CHECK(usleep(10));
+            ESP_ERROR_CHECK(gpio_set_level(GPIO_NUM_0, 0));
+        }
+        int64_t t1 = esp_timer_get_time();
+        while (gpio_get_level(GPIO_NUM_1) == 1); // Wait while pulse is high
+        int64_t t2 = esp_timer_get_time();
+        int temp;
+        read_temperature_and_humidity(&temp, NULL);
+        // Formula: http://hyperphysics.phy-astr.gsu.edu/hbase/Sound/souspe.html
+        count++;
+        float speed = (331.4 + 0.6 * temp) / 10; // in cm/ms
+        distance += (t2 - t1) * speed / 1000.0f;
+        temperature += temp;
     }
-    int64_t t1 = esp_timer_get_time();
-    while (gpio_get_level(GPIO_NUM_1) == 1); // Wait while pulse is high
-    int64_t t2 = esp_timer_get_time();
-    int temperature;
-    read_temperature_and_humidity(&temperature, NULL);
-    // Formula: http://hyperphysics.phy-astr.gsu.edu/hbase/Sound/souspe.html
-    float speed = (331.4 + 0.6 * temperature) / 10; // in cm/ms
-    printf("Distance: %.1f cm at %dC\n", (t2 - t1) * speed / 1000.0f, temperature);
+    printf("Distance: %.1f cm at %.1fC\n", distance / (1.0f * count), temperature / (1.0f * count));
 }
 
 void app_main(void)
